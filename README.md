@@ -204,6 +204,28 @@ npm run test:twilio  # Test Twilio configuration
 3. **WebSocket**: No authentication implemented (add for production)
 4. **CRM Auth**: Must implement proper authentication headers
 
+## Knowledge Base System
+
+The AI agent includes a production-ready knowledge base system that matches how VAPI and ElevenLabs handle knowledge:
+
+### How It Works
+- Knowledge is embedded directly in the system prompt (no tool calls = faster responses)
+- Supports **10,000-20,000 tokens** of knowledge (approximately 15-30 pages of text)
+- Automatically loaded from `data/knowledge-base.json`
+- Cached for performance
+
+### Adding Knowledge
+1. Edit `data/knowledge-base.json` with your company information
+2. The system automatically formats and embeds it into Emma's prompt
+3. No code changes needed - just update the JSON file
+
+### Token Limits
+- **OpenAI GPT-4o**: 128,000 total context tokens
+- **Recommended for Knowledge**: 10,000-20,000 tokens
+- **What fits**: 50-100+ services, complete policies, extensive FAQs, product catalogs
+
+See `/docs/KNOWLEDGE_BASE_INTEGRATION.md` for detailed implementation guide.
+
 ## Cost Tracking
 
 The system includes cost tracking for API usage:
@@ -238,6 +260,8 @@ The system includes cost tracking for API usage:
 - Architecture details: `/Plan/ARCHITECTURE.md`
 - Implementation progress: `/docs/IMPLEMENTATION_PROGRESS.md`
 - OpenAI integration: `/docs/OPENAI_REALTIME_INTEGRATION.md`
+- Knowledge base guide: `/docs/KNOWLEDGE_BASE_INTEGRATION.md`
+- Token limits explained: `/docs/KNOWLEDGE_BASE_TOKEN_LIMITS.md`
 
 ## Contact
 

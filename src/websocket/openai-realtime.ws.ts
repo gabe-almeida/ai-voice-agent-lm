@@ -9,8 +9,11 @@ import { EMMA_SYSTEM_PROMPT } from '../config/emma-prompt';
 import logger from '../utils/logger';
 import { costTracker } from '../utils/cost-tracker';
 import axios from 'axios'; // Added for making HTTP requests
+import { KnowledgePromptBuilder } from '../services/knowledge-prompt-builder.service';
 
 // --- Tool Definitions ---
+// Note: Following VAPI/ElevenLabs approach, knowledge base is embedded in prompt, not accessed via tools
+
 const getAppointmentAvailabilityTool: ToolDefinition = {
   type: 'function',
   function: {
@@ -106,7 +109,11 @@ export function handleOpenAIRealtimeWebSocket(ws: WebSocket, _req: any) {
               instructions: EMMA_SYSTEM_PROMPT,
               temperature: message.session?.temperature || 0.8,
               maxResponseLength: message.session?.max_response_output_tokens || 4096,
-              tools: [getAppointmentAvailabilityTool, createAppointmentEventTool], // Pass both tool definitions
+              tools: [
+                getAppointmentAvailabilityTool,
+                createAppointmentEventTool
+                // Knowledge base is embedded in prompt (VAPI/ElevenLabs approach)
+              ],
             });
 
             // Set up event forwarding from OpenAI to client

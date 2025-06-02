@@ -1,0 +1,82 @@
+[
+  {
+    "id": "kb-001",
+    "category": "services",
+    "question": "What services do you offer?",
+    "answer": "We offer luxury makeover services including: Professional makeup application, Hair styling and treatments, Personal color analysis, Wardrobe consultation, and Complete transformation packages. Our services start at $150 for basic makeup and go up to $1,500 for our full-day luxury transformation experience.",
+    "keywords": ["services", "offer", "what", "makeup", "hair", "styling", "transformation", "packages"],
+    "priority": 10
+  },
+  {
+    "id": "kb-002",
+    "category": "pricing",
+    "question": "How much do your services cost?",
+    "answer": "Our pricing varies by service: Basic Makeup Application: $150, Hair Styling: $200, Full Makeover (makeup + hair): $350, Luxury Transformation Package: $1,500. We also offer seasonal promotions and package deals. All prices include premium products and a consultation.",
+    "keywords": ["price", "cost", "how much", "pricing", "rates", "fee", "charge", "expensive"],
+    "priority": 10
+  },
+  {
+    "id": "kb-003",
+    "category": "booking",
+    "question": "How do I book an appointment?",
+    "answer": "You can book an appointment by: 1) Speaking with me now and I'll check availability, 2) Visiting our website, or 3) Calling our studio directly. We recommend booking at least 2 weeks in advance for weekend appointments. Same-day appointments may be available for an additional rush fee of $75.",
+    "keywords": ["book", "appointment", "schedule", "booking", "reserve", "availability"],
+    "priority": 9
+  },
+  {
+    "id": "kb-004",
+    "category": "location",
+    "question": "Where are you located?",
+    "answer": "Our luxury studio is located at 123 Fashion Avenue, Beverly Hills, CA 90210. We're in the heart of Beverly Hills, just two blocks from Rodeo Drive. Valet parking is available, and we also offer in-home services for an additional travel fee starting at $100.",
+    "keywords": ["location", "where", "address", "located", "find", "directions", "Beverly Hills"],
+    "priority": 8
+  },
+  {
+    "id": "kb-005",
+    "category": "hours",
+    "question": "What are your business hours?",
+    "answer": "We're open Tuesday through Saturday from 9:00 AM to 7:00 PM. We're closed on Sundays and Mondays. Early morning appointments starting at 6:00 AM and evening appointments until 9:00 PM are available upon request for an additional fee.",
+    "keywords": ["hours", "open", "closed", "time", "when", "business hours", "schedule"],
+    "priority": 8
+  },
+  {
+    "id": "kb-006",
+    "category": "policies",
+    "question": "What is your cancellation policy?",
+    "answer": "We require 48 hours notice for cancellations or rescheduling. Cancellations made less than 48 hours before your appointment will incur a 50% cancellation fee. No-shows will be charged the full service amount. We understand emergencies happen - please contact us as soon as possible.",
+    "keywords": ["cancel", "cancellation", "reschedule", "policy", "refund", "change"],
+    "priority": 7
+  },
+  {
+    "id": "kb-007",
+    "category": "preparation",
+    "question": "How should I prepare for my appointment?",
+    "answer": "Please arrive with clean, dry hair and a makeup-free face. Wear a button-up shirt to avoid disturbing your hair and makeup when changing. Bring inspiration photos if you have a specific look in mind. Avoid using heavy moisturizers or oils on the day of your appointment.",
+    "keywords": ["prepare", "preparation", "before", "ready", "what to do", "instructions"],
+    "priority": 6
+  },
+  {
+    "id": "kb-008",
+    "category": "products",
+    "question": "What products do you use?",
+    "answer": "We exclusively use luxury, professional-grade products from brands like Charlotte Tilbury, Tom Ford, Chanel, Dior, and La Mer. All products are hypoallergenic and suitable for sensitive skin. We can accommodate specific product preferences or allergies with advance notice.",
+    "keywords": ["products", "brands", "makeup brands", "what products", "allergies", "sensitive"],
+    "priority": 6
+  },
+  {
+    "id": "kb-009",
+    "category": "duration",
+    "question": "How long do appointments take?",
+    "answer": "Appointment durations vary by service: Basic Makeup: 45-60 minutes, Hair Styling: 60-90 minutes, Full Makeover: 2-3 hours, Luxury Transformation: 4-6 hours including breaks and refreshments. We never rush our services and ensure you're completely satisfied.",
+    "keywords": ["long", "duration", "time", "how long", "length", "minutes", "hours"],
+    "priority": 7
+  },
+  {
+    "id": "kb-010",
+    "category": "special-events",
+    "question": "Do you offer bridal or special event services?",
+    "answer": "Yes! We specialize in bridal and special event styling. We offer bridal packages starting at $500, including trial sessions. For weddings, we can accommodate the entire bridal party with our team of artists. We also provide on-location services for your convenience.",
+    "keywords": ["bridal", "wedding", "bride", "special event", "party", "prom", "gala"],
+    "priority": 9
+  }
+]
