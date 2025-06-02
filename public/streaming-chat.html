@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent - Streaming Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .status {
+            background: #f0f0f0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .status.listening {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.speaking {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status.processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #startBtn {
+            background: #667eea;
+            color: white;
+        }
+        
+        #startBtn:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        #stopBtn {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        #stopBtn:hover:not(:disabled) {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .volume-indicator {
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .volume-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        .chat-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: 50px;
+            text-align: right;
+        }
+        
+        .message.agent {
+            background: white;
+            color: #333;
+            margin-right: 50px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .tip {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        .cost-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .cost-info h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .cost-amount {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .latency-info {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .latency-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .latency-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+        
+        .latency-indicator.slow {
+            background: #ffc107;
+        }
+        
+        .latency-indicator.very-slow {
+            background: #dc3545;
+        }
+        
+        .streaming-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .streaming-indicator.active {
+            display: flex;
+        }
+        
+        .streaming-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .streaming-dots span {
+            width: 6px;
+            height: 6px;
+            background: #2196f3;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .streaming-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .streaming-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice Agent - Streaming Mode</h1>
+        
+        <div id="status" class="status">
+            Click "Start Call" to begin speaking with the agent
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">Start Call</button>
+            <button id="stopBtn" disabled>End Call</button>
+        </div>
+        
+        <div class="volume-indicator">
+            <div id="volumeBar" class="volume-bar"></div>
+        </div>
+        
+        <div class="streaming-indicator" id="streamingIndicator">
+            <div class="streaming-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span>Processing audio chunks...</span>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <div class="latency-info">
+            <div class="latency-item">
+                <div class="latency-indicator" id="textLatency"></div>
+                <span>Text: <span id="textLatencyMs">-</span>ms</span>
+            </div>
+            <div class="latency-item">
+                <div class="latency-indicator" id="audioLatency"></div>
+                <span>First Audio: <span id="audioLatencyMs">-</span>ms</span>
+            </div>
+            <div class="latency-item">
+                <div class="latency-indicator" id="totalLatency"></div>
+                <span>Total: <span id="totalLatencyMs">-</span>ms</span>
+            </div>
+        </div>
+        
+        <div class="tip">
+            💡 Tip: This uses streaming audio for faster, more natural conversations
+        </div>
+        
+        <div class="cost-info">
+            <h3>Estimated Cost</h3>
+            <div class="cost-item">
+                <span>Chat:</span>
+                <span class="cost-amount" id="chatCost">$0.0000</span>
+            </div>
+            <div class="cost-item">
+                <span>TTS:</span>
+                <span class="cost-amount" id="ttsCost">$0.0000</span>
+            </div>
+            <div class="cost-item">
+                <strong>Total:</strong>
+                <strong class="cost-amount" id="totalCost">$0.0000</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let isActive = false;
+        let recognition;
+        let isListening = false;
+        let sessionId = null;
+        let audioQueue = [];
+        let isPlayingAudio = false;
+        let messageStartTime = null;
+        let firstAudioTime = null;
+        let totalResponseTime = null;
+        
+        // Cost tracking
+        let sessionCost = {
+            chat: 0,
+            tts: 0,
+            total: 0
+        };
+        
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const volumeBar = document.getElementById('volumeBar');
+        const chatContainer = document.getElementById('chatContainer');
+        const streamingIndicator = document.getElementById('streamingIndicator');
+        
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                status.textContent = 'Listening...';
+                status.className = 'status listening';
+            };
+            
+            recognition.onresult = (event) => {
+                const last = event.results.length - 1;
+                const transcript = event.results[last][0].transcript;
+                
+                if (event.results[last].isFinal) {
+                    sendMessage(transcript);
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    // Restart recognition
+                    if (isActive) {
+                        recognition.start();
+                    }
+                }
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                if (isActive) {
+                    // Restart recognition
+                    setTimeout(() => {
+                        if (isActive && !isListening) {
+                            recognition.start();
+                        }
+                    }, 100);
+                }
+            };
+        }
+        
+        // Audio context for volume visualization
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+        
+        async function setupAudioVisualization() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+                
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+                
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+                
+                javascriptNode.onaudioprocess = () => {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    const values = array.reduce((a, b) => a + b, 0);
+                    const average = values / array.length;
+                    const percentage = Math.min(100, (average / 128) * 100);
+                    volumeBar.style.width = percentage + '%';
+                };
+            } catch (error) {
+                console.error('Error setting up audio visualization:', error);
+            }
+        }
+        
+        // Start session
+        async function startSession() {
+            try {
+                const response = await fetch('/api/chat/stream/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    sessionId = data.sessionId;
+                    isActive = true;
+                    
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    
+                    // Start speech recognition
+                    if (recognition) {
+                        recognition.start();
+                    }
+                    
+                    // Setup audio visualization
+                    await setupAudioVisualization();
+                    
+                    // Clear chat
+                    chatContainer.innerHTML = '';
+                    
+                    // Reset costs
+                    sessionCost = { chat: 0, tts: 0, total: 0 };
+                    updateCostDisplay();
+                }
+            } catch (error) {
+                console.error('Failed to start session:', error);
+                alert('Failed to start session. Please try again.');
+            }
+        }
+        
+        // Send message with streaming response
+        async function sendMessage(text) {
+            if (!isActive || !text.trim()) return;
+            
+            // Add user message to chat
+            addMessage(text, 'user');
+            
+            // Update status
+            status.textContent = 'Processing...';
+            status.className = 'status processing';
+            
+            // Reset timing
+            messageStartTime = Date.now();
+            firstAudioTime = null;
+            totalResponseTime = null;
+            
+            // Show streaming indicator
+            streamingIndicator.classList.add('active');
+            
+            try {
+                const response = await fetch('/api/chat/stream/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let agentMessageDiv = null;
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('event:')) {
+                            const event = line.substring(6).trim();
+                            
+                            if (event === 'text') {
+                                // Handle text response
+                                const dataLine = lines[lines.indexOf(line) + 1];
+                                if (dataLine && dataLine.startsWith('data:')) {
+                                    const data = JSON.parse(dataLine.substring(5));
+                                    
+                                    // Update text latency
+                                    const textLatency = Date.now() - messageStartTime;
+                                    updateLatencyIndicator('text', textLatency);
+                                    
+                                    // Add agent message
+                                    agentMessageDiv = addMessage(data.text, 'agent');
+                                }
+                            } else if (event === 'audio') {
+                                // Handle audio chunk
+                                const dataLine = lines[lines.indexOf(line) + 1];
+                                if (dataLine && dataLine.startsWith('data:')) {
+                                    const data = JSON.parse(dataLine.substring(5));
+                                    
+                                    // Update first audio latency
+                                    if (!firstAudioTime) {
+                                        firstAudioTime = Date.now() - messageStartTime;
+                                        updateLatencyIndicator('audio', firstAudioTime);
+                                    }
+                                    
+                                    // Queue audio for playback
+                                    queueAudio(data.audio, data.isLast);
+                                }
+                            } else if (event === 'complete') {
+                                // Handle completion
+                                const dataLine = lines[lines.indexOf(line) + 1];
+                                if (dataLine && dataLine.startsWith('data:')) {
+                                    const data = JSON.parse(dataLine.substring(5));
+                                    totalResponseTime = data.totalTime;
+                                    updateLatencyIndicator('total', totalResponseTime);
+                                }
+                                
+                                streamingIndicator.classList.remove('active');
+                            } else if (event === 'error') {
+                                // Handle error
+                                console.error('Streaming error:', line);
+                                streamingIndicator.classList.remove('active');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to send message:', error);
+                streamingIndicator.classList.remove('active');
+                status.textContent = 'Error occurred. Please try again.';
+                status.className = 'status';
+            }
+        }
+        
+        // Queue audio for sequential playback
+        function queueAudio(base64Audio, isLast) {
+            audioQueue.push({ base64Audio, isLast });
+            
+            // Start playing if not already playing
+            if (!isPlayingAudio) {
+                playNextAudio();
+            }
+        }
+        
+        // Play next audio in queue
+        async function playNextAudio() {
+            if (audioQueue.length === 0) {
+                isPlayingAudio = false;
+                status.textContent = 'Listening...';
+                status.className = 'status listening';
+                return;
+            }
+            
+            isPlayingAudio = true;
+            status.textContent = 'Speaking...';
+            status.className = 'status speaking';
+            
+            const { base64Audio, isLast } = audioQueue.shift();
+            
+            try {
+                // Convert base64 to blob
+                const audioData = atob(base64Audio);
+                const arrayBuffer = new ArrayBuffer(audioData.length);
+                const view = new Uint8Array(arrayBuffer);
+                for (let i = 0; i < audioData.length; i++) {
+                    view[i] = audioData.charCodeAt(i);
+                }
+                
+                const blob = new Blob([arrayBuffer], { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(blob);
+                
+                // Play audio
+                const audio = new Audio(audioUrl);
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    playNextAudio(); // Play next chunk
+                };
+                
+                await audio.play();
+            } catch (error) {
+                console.error('Failed to play audio chunk:', error);
+                playNextAudio(); // Continue with next chunk
+            }
+        }
+        
+        // Add message to chat
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const textDiv = document.createElement('div');
+            textDiv.textContent = text;
+            messageDiv.appendChild(textDiv);
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timeDiv);
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+        
+        // Update latency indicator
+        function updateLatencyIndicator(type, latency) {
+            const indicator = document.getElementById(`${type}Latency`);
+            const display = document.getElementById(`${type}LatencyMs`);
+            
+            display.textContent = latency;
+            
+            // Update indicator color based on latency
+            if (latency < 500) {
+                indicator.className = 'latency-indicator';
+            } else if (latency < 1000) {
+                indicator.className = 'latency-indicator slow';
+            } else {
+                indicator.className = 'latency-indicator very-slow';
+            }
+        }
+        
+        // Update cost display
+        function updateCostDisplay() {
+            document.getElementById('chatCost').textContent = `$${sessionCost.chat.toFixed(4)}`;
+            document.getElementById('ttsCost').textContent = `$${sessionCost.tts.toFixed(4)}`;
+            document.getElementById('totalCost').textContent = `$${sessionCost.total.toFixed(4)}`;
+        }
+        
+        // End session
+        async function endSession() {
+            isActive = false;
+            
+            // Stop recognition
+            if (recognition) {
+                recognition.stop();
+            }
+            
+            // Stop audio visualization
+            if (microphone) microphone.disconnect();
+            if (javascriptNode) javascriptNode.disconnect();
+            if (audioContext) audioContext.close();
+            
+            // Clear audio queue
+            audioQueue = [];
+            isPlayingAudio = false;
+            
+            // End session on server
+            if (sessionId) {
+                try {
+                    const response = await fetch('/api/chat/stream/end', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.cost) {
+                        sessionCost = {
+                            chat: data.cost.chatCost || 0,
+                            tts: data.cost.ttsCost || 0,
+                            total: data.cost.totalCost || 0
+                        };
+                        updateCostDisplay();
+                    }
+                } catch (error) {
+                    console.error('Failed to end session:', error);
+                }
+            }
+            
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            status.textContent = 'Call ended';
+            status.className = 'status';
+            volumeBar.style.width = '0%';
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startSession);
+        stopBtn.addEventListener('click', endSession);
+        
+        // Check browser support
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Speech recognition is not supported in your browser. Please use Chrome.');
+        }
+    </script>
+</body>
+</html>

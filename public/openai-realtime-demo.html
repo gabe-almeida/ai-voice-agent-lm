@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI Realtime API Demo - 300-800ms Response Time</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .primary:hover {
+            background: #2563eb;
+        }
+        .secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        .secondary:hover {
+            background: #d1d5db;
+        }
+        .danger {
+            background: #ef4444;
+            color: white;
+        }
+        .danger:hover {
+            background: #dc2626;
+        }
+        #status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .connecting {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        #messages {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background: #3b82f6;
+            color: white;
+            margin-left: 20%;
+            text-align: right;
+        }
+        .ai-message {
+            background: #e5e7eb;
+            color: #374151;
+            margin-right: 20%;
+        }
+        .system-message {
+            background: #fef3c7;
+            color: #92400e;
+            text-align: center;
+            font-size: 14px;
+            font-style: italic;
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #textInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .comparison-table {
+            margin-top: 40px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .highlight {
+            background: #d1fae5;
+            font-weight: bold;
+        }
+        .latency-chart {
+            margin-top: 20px;
+            height: 200px;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .bar {
+            position: absolute;
+            bottom: 40px;
+            width: 60px;
+            background: #3b82f6;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.3s;
+        }
+        .bar-label {
+            position: absolute;
+            bottom: 20px;
+            width: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OpenAI Realtime API Demo</h1>
+        <p class="subtitle">Experience ultra-low latency voice streaming with 300-800ms response time</p>
+
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value" id="latencyValue">--</div>
+                <div class="metric-label">Current Latency (ms)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="avgLatencyValue">--</div>
+                <div class="metric-label">Average Latency (ms)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="messagesCount">0</div>
+                <div class="metric-label">Messages Sent</div>
+            </div>
+        </div>
+
+        <div id="status" class="disconnected">Disconnected</div>
+
+        <div class="controls">
+            <button id="connectBtn" class="primary">Connect to Realtime API</button>
+            <button id="disconnectBtn" class="danger" disabled>Disconnect</button>
+            <button id="clearBtn" class="secondary">Clear Messages</button>
+        </div>
+
+        <div id="messages"></div>
+
+        <div id="input-container">
+            <input type="text" id="textInput" placeholder="Type a message and press Enter..." disabled>
+            <button id="sendBtn" class="primary" disabled>Send</button>
+        </div>
+
+        <div class="latency-chart">
+            <h3>Latency History (last 5 messages)</h3>
+            <div style="position: relative; height: 150px;">
+                <div class="bar" id="bar1" style="left: 20px; height: 0;"></div>
+                <div class="bar-label" style="left: 20px;">--</div>
+                <div class="bar" id="bar2" style="left: 100px; height: 0;"></div>
+                <div class="bar-label" style="left: 100px;">--</div>
+                <div class="bar" id="bar3" style="left: 180px; height: 0;"></div>
+                <div class="bar-label" style="left: 180px;">--</div>
+                <div class="bar" id="bar4" style="left: 260px; height: 0;"></div>
+                <div class="bar-label" style="left: 260px;">--</div>
+                <div class="bar" id="bar5" style="left: 340px; height: 0;"></div>
+                <div class="bar-label" style="left: 340px;">--</div>
+            </div>
+        </div>
+
+        <div class="comparison-table">
+            <h3>Performance Comparison</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Response Time</th>
+                        <th>Streaming</th>
+                        <th>Real-time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight">
+                        <td><strong>OpenAI Realtime API</strong></td>
+                        <td><strong>300-800ms</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>🟢 Optimal</td>
+                    </tr>
+                    <tr>
+                        <td>OpenAI gpt-4o-audio</td>
+                        <td>1-3 seconds</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>🟡 Good</td>
+                    </tr>
+                    <tr>
+                        <td>Gemini TTS</td>
+                        <td>3-7 seconds</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>🔴 Slow</td>
+                    </tr>
+                    <tr>
+                        <td>ElevenLabs</td>
+                        <td>300-500ms</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>🟢 Optimal</td>
+                    </tr>
+                    <tr>
+                        <td>PlayHT</td>
+                        <td>400-600ms</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>🟢 Optimal</td>
+                    </tr>
+                    <tr>
+                        <td>Azure Neural</td>
+                        <td>500-800ms</td>
+                        <td>✅</td>
+                        <td>❌</td>
+                        <td>🟡 Good</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Demo simulation - In real implementation, this would connect to the actual WebSocket
+        let isConnected = false;
+        let messageCount = 0;
+        let latencies = [];
+        let latencyHistory = [];
+
+        const status = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const textInput = document.getElementById('textInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const messages = document.getElementById('messages');
+        const latencyValue = document.getElementById('latencyValue');
+        const avgLatencyValue = document.getElementById('avgLatencyValue');
+        const messagesCount = document.getElementById('messagesCount');
+
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        clearBtn.addEventListener('click', clearMessages);
+        sendBtn.addEventListener('click', sendMessage);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function connect() {
+            status.textContent = 'Connecting...';
+            status.className = 'connecting';
+            
+            // Simulate connection delay
+            setTimeout(() => {
+                isConnected = true;
+                status.textContent = 'Connected to OpenAI Realtime API';
+                status.className = 'connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                textInput.disabled = false;
+                sendBtn.disabled = false;
+                
+                addSystemMessage('Connected to OpenAI Realtime API (gpt-4o-realtime-preview)');
+            }, 500);
+        }
+
+        function disconnect() {
+            isConnected = false;
+            status.textContent = 'Disconnected';
+            status.className = 'disconnected';
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            textInput.disabled = true;
+            sendBtn.disabled = true;
+            
+            addSystemMessage('Disconnected from OpenAI Realtime API');
+        }
+
+        function sendMessage() {
+            const text = textInput.value.trim();
+            if (!text || !isConnected) return;
+
+            addUserMessage(text);
+            textInput.value = '';
+            messageCount++;
+            messagesCount.textContent = messageCount;
+
+            // Simulate API response with realistic latency
+            const startTime = Date.now();
+            const simulatedLatency = 300 + Math.random() * 500; // 300-800ms
+
+            setTimeout(() => {
+                const actualLatency = Date.now() - startTime;
+                latencies.push(actualLatency);
+                latencyHistory.push(actualLatency);
+                if (latencyHistory.length > 5) latencyHistory.shift();
+
+                latencyValue.textContent = Math.round(actualLatency);
+                avgLatencyValue.textContent = Math.round(
+                    latencies.reduce((a, b) => a + b, 0) / latencies.length
+                );
+
+                updateLatencyChart();
+
+                // Simulate AI response
+                const responses = {
+                    'hello': 'Hello! How can I assist you today?',
+                    'test': 'This is a test response demonstrating the low latency of the Realtime API.',
+                    'speed': `Response delivered in ${Math.round(actualLatency)}ms! That's faster than human reaction time.`,
+                    'default': `I received your message in just ${Math.round(actualLatency)}ms. The OpenAI Realtime API enables natural, fluid conversations.`
+                };
+
+                const response = responses[text.toLowerCase()] || responses.default;
+                addAIMessage(response);
+            }, simulatedLatency);
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addAIMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message ai-message';
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addSystemMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message system-message';
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function clearMessages() {
+            messages.innerHTML = '';
+            messageCount = 0;
+            latencies = [];
+            latencyHistory = [];
+            messagesCount.textContent = '0';
+            latencyValue.textContent = '--';
+            avgLatencyValue.textContent = '--';
+            updateLatencyChart();
+        }
+
+        function updateLatencyChart() {
+            const maxLatency = Math.max(...latencyHistory, 1000);
+            const bars = document.querySelectorAll('.bar');
+            const labels = document.querySelectorAll('.bar-label');
+
+            latencyHistory.forEach((latency, index) => {
+                const height = (latency / maxLatency) * 120;
+                bars[index].style.height = `${height}px`;
+                labels[index].textContent = `${Math.round(latency)}ms`;
+            });
+
+            // Clear unused bars
+            for (let i = latencyHistory.length; i < 5; i++) {
+                bars[i].style.height = '0';
+                labels[i].textContent = '--';
+            }
+        }
+    </script>
+</body>
+</html>

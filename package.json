@@ -1,0 +1,46 @@
+{
+  "name": "voice-agent",
+  "version": "1.0.0",
+  "description": "A scalable voice agent system that handles inbound/outbound calls via Twilio, uses Google's Gemini 2.0 Flash for AI conversations, and supports custom instructions and knowledge bases per agent.",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:gemini": "ts-node scripts/test-gemini.ts",
+    "test:conversation": "ts-node scripts/test-conversation.ts",
+    "test:tts": "ts-node scripts/test-gemini-tts.ts",
+    "test:streaming": "ts-node scripts/test-gemini-streaming.ts",
+    "test:streaming-v2": "ts-node scripts/test-gemini-streaming-v2.ts",
+    "test:flash-tts": "ts-node scripts/test-flash-tts-comparison.ts",
+    "test:openai-realtime": "ts-node scripts/test-openai-realtime.ts",
+    "test:emma": "ts-node scripts/test-openai-emma.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^1.2.0",
+    "@google/generative-ai": "^0.24.1",
+    "@types/ws": "^8.18.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mime": "^4.0.7",
+    "openai": "^4.52.0",
+    "twilio": "^5.7.0",
+    "winston": "^3.17.0",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/mime": "^3.0.4",
+    "@types/node": "^22.15.24",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

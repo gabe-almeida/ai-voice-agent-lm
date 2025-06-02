@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .cost-display {
+            text-align: center;
+            padding: 15px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+        
+        .cost-display.active {
+            background: #e6fffa;
+            color: #234e52;
+        }
+        
+        .status.connected {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status.speaking {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #startBtn {
+            background: #48bb78;
+        }
+        
+        #startBtn:hover:not(:disabled) {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        
+        #stopBtn {
+            background: #f56565;
+        }
+        
+        #stopBtn:hover:not(:disabled) {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+        
+        .conversation {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s ease-in;
+            position: relative;
+        }
+        
+        .message.user {
+            background: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            margin-left: 20px;
+        }
+        
+        .message.agent {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            margin-right: 20px;
+        }
+        
+        .message .label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            display: inline-block;
+        }
+        
+        .response-time {
+            font-size: 0.75em;
+            color: #718096;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .volume-indicator {
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .volume-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #38b2ac 100%);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        .instructions {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+        
+        .cost-amount {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .timing-info {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .timing-info h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .timing-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+        
+        .timing-item.total {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .timing-value {
+            font-weight: 600;
+            color: #667eea;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .timing-value.slow {
+            color: #f59e0b;
+        }
+        
+        .timing-value.very-slow {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice Agent Tester</h1>
+        
+        <div id="status" class="status">
+            Click "Start Call" to begin speaking with the agent
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">Start Call</button>
+            <button id="stopBtn" disabled>End Call</button>
+        </div>
+        
+        <div class="volume-indicator">
+            <div id="volumeBar" class="volume-bar"></div>
+        </div>
+        
+        <div id="conversation" class="conversation">
+            <div class="instructions">Your conversation will appear here...</div>
+        </div>
+        
+        <div class="instructions">
+            <p>💡 Tip: Speak clearly and wait for the agent to finish before responding</p>
+        </div>
+        
+        <div id="costDisplay" class="cost-display">
+            Estimated Cost: $<span id="costAmount">0.0000</span>
+            <div style="font-size: 0.8em; margin-top: 5px;">
+                Chat: $<span id="chatCost">0.0000</span> | TTS: $<span id="ttsCost">0.0000</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let recognition;
+        // NO browser synthesis - only Gemini Callirrhoe voice
+        let isListening = false;
+        let conversationActive = false;
+        let costInterval = null;
+        let ttsQueue = [];
+        let isProcessingTTS = false;
+        
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const conversation = document.getElementById('conversation');
+        const volumeBar = document.getElementById('volumeBar');
+        const costDisplay = document.getElementById('costDisplay');
+        const costAmount = document.getElementById('costAmount');
+        const chatCost = document.getElementById('chatCost');
+        const ttsCost = document.getElementById('ttsCost');
+        
+        // Initialize speech recognition
+        function initRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                status.textContent = 'Speech recognition not supported';
+                status.className = 'status error';
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            let finalTranscript = '';
+            let silenceTimer;
+            
+            recognition.onstart = () => {
+                isListening = true;
+                console.log('Speech recognition started');
+            };
+            
+            recognition.onresult = async (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                        
+                        // Clear any existing silence timer
+                        clearTimeout(silenceTimer);
+                        
+                        // Set a timer to send the message after a pause
+                        silenceTimer = setTimeout(async () => {
+                            if (finalTranscript.trim()) {
+                                const message = finalTranscript.trim();
+                                finalTranscript = '';
+                                
+                                // Add user message to conversation
+                                addMessage('You', message, 'user');
+                                
+                                // Send message to chat API
+                                const startTime = Date.now();
+                                try {
+                                    const response = await fetch('/api/chat/message', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({ message }),
+                                    });
+                                    
+                                    const data = await response.json();
+                                    const responseTime = Date.now() - startTime;
+                                    
+                                    if (data.response) {
+                                        addMessage('Agent', data.response, 'agent', responseTime);
+                                        // Add to TTS queue instead of speaking immediately
+                                        queueTTS(data.response);
+                                    }
+                                } catch (error) {
+                                    console.error('Error sending message:', error);
+                                }
+                            }
+                        }, 1000); // Wait 1 second of silence before sending
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Update volume indicator based on confidence
+                if (event.results.length > 0) {
+                    const confidence = event.results[event.results.length - 1][0].confidence;
+                    volumeBar.style.width = `${confidence * 100}%`;
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    // Ignore no-speech errors during active conversation
+                    if (conversationActive) {
+                        recognition.start();
+                    }
+                }
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                console.log('Speech recognition ended');
+                volumeBar.style.width = '0%';
+                
+                // Restart if conversation is still active
+                if (conversationActive) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log('Failed to restart recognition:', e);
+                    }
+                }
+            };
+        }
+        
+        // Queue TTS requests
+        function queueTTS(text) {
+            ttsQueue.push(text);
+            processTTSQueue();
+        }
+        
+        // Process TTS queue
+        async function processTTSQueue() {
+            if (isProcessingTTS || ttsQueue.length === 0) {
+                return;
+            }
+            
+            isProcessingTTS = true;
+            const text = ttsQueue.shift();
+            
+            try {
+                await speakResponse(text);
+            } catch (error) {
+                console.error('Error processing TTS:', error);
+            } finally {
+                isProcessingTTS = false;
+                // Process next item in queue
+                if (ttsQueue.length > 0) {
+                    processTTSQueue();
+                }
+            }
+        }
+        
+        // Speak the agent's response using Gemini TTS
+        async function speakResponse(text) {
+            status.textContent = 'Agent is speaking...';
+            status.className = 'status speaking';
+            
+            const ttsStartTime = Date.now();
+            
+            try {
+                // Get audio from Gemini TTS with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                
+                const response = await fetch('/api/chat/tts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        text,
+                        voice: 'Callirrhoe' // Use Callirrhoe voice for more natural conversation
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate speech');
+                }
+                
+                // Get audio blob
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                // Create audio element and play
+                const audio = new Audio(audioUrl);
+                
+                // Set up event handlers before playing
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    if (conversationActive) {
+                        status.textContent = 'Listening...';
+                        status.className = 'status connected';
+                        // Resume listening after agent finishes speaking
+                        if (!isListening && conversationActive) {
+                            recognition.start();
+                        }
+                    }
+                };
+                
+                audio.onerror = (error) => {
+                    console.error('Audio playback error:', error);
+                    URL.revokeObjectURL(audioUrl);
+                    // NO FALLBACK - Only use Gemini Callirrhoe voice
+                    console.error('Audio playback failed - NOT using fallback');
+                    
+                    // Still need to resume listening
+                    if (conversationActive) {
+                        status.textContent = 'Listening...';
+                        status.className = 'status connected';
+                        if (!isListening && conversationActive) {
+                            recognition.start();
+                        }
+                    }
+                };
+                
+                // Play the Gemini TTS audio
+                await audio.play();
+                const ttsTime = Date.now() - ttsStartTime;
+                console.log(`Playing Gemini TTS audio (Callirrhoe voice) - Generated in ${ttsTime}ms`);
+                
+            } catch (error) {
+                console.error('TTS error:', error);
+                if (error.name === 'AbortError') {
+                    console.log('TTS request timed out');
+                }
+                // NO FALLBACK - Only use Gemini Callirrhoe voice
+                console.error('Gemini TTS failed - NOT using fallback');
+                
+                // Still need to resume listening
+                if (conversationActive) {
+                    status.textContent = 'Listening...';
+                    status.className = 'status connected';
+                    if (!isListening && conversationActive) {
+                        recognition.start();
+                    }
+                }
+            }
+        }
+        
+        // Browser TTS fallback function - DISABLED
+        // We only use Gemini Callirrhoe voice, no fallbacks
+        function useBrowserTTS(text) {
+            console.error('Browser TTS called but DISABLED - Only Gemini Callirrhoe voice allowed');
+            // Do nothing - no fallback allowed
+        }
+        
+        // Update cost display periodically
+        async function updateCostDisplay() {
+            if (!conversationActive) return;
+            
+            try {
+                const response = await fetch('/api/chat/status');
+                const data = await response.json();
+                
+                if (data.currentCost !== undefined) {
+                    costAmount.textContent = data.currentCost.toFixed(4);
+                    costDisplay.className = 'cost-display active';
+                    
+                    if (data.costBreakdown) {
+                        chatCost.textContent = data.costBreakdown.chat.toFixed(4);
+                        ttsCost.textContent = data.costBreakdown.tts.toFixed(4);
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating cost:', error);
+            }
+        }
+        
+        // Add message to conversation
+        function addMessage(speaker, text, type, responseTime = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            let responseTimeHtml = '';
+            if (responseTime) {
+                responseTimeHtml = `<span class="response-time">${responseTime}ms</span>`;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="label">${speaker}:</div>
+                <div>${text}</div>
+                ${responseTimeHtml}
+            `;
+            
+            // Clear instructions if this is the first message
+            if (conversation.querySelector('.instructions')) {
+                conversation.innerHTML = '';
+            }
+            
+            conversation.appendChild(messageDiv);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+        
+        // Start conversation
+        startBtn.addEventListener('click', async () => {
+            conversationActive = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            
+            // Clear TTS queue
+            ttsQueue = [];
+            isProcessingTTS = false;
+            
+            // Initialize recognition if not already done
+            if (!recognition) {
+                initRecognition();
+            }
+            
+            // Start the conversation
+            try {
+                const response = await fetch('/api/chat/start', {
+                    method: 'POST',
+                });
+                
+                const data = await response.json();
+                
+                if (data.greeting) {
+                    status.textContent = 'Connected to agent';
+                    status.className = 'status connected';
+                    addMessage('Agent', data.greeting, 'agent');
+                    queueTTS(data.greeting);
+                    
+                    // Start cost update interval
+                    costInterval = setInterval(updateCostDisplay, 2000);
+                    updateCostDisplay();
+                }
+            } catch (error) {
+                console.error('Error starting conversation:', error);
+                status.textContent = 'Error connecting to agent';
+                status.className = 'status error';
+            }
+        });
+        
+        // Stop conversation
+        stopBtn.addEventListener('click', async () => {
+            conversationActive = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            // Clear cost update interval
+            if (costInterval) {
+                clearInterval(costInterval);
+                costInterval = null;
+            }
+            
+            // Clear TTS queue
+            ttsQueue = [];
+            isProcessingTTS = false;
+            
+            // Stop speech recognition
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+            
+            // No browser synthesis to cancel - only Gemini Callirrhoe voice
+            
+            // Stop any playing audio
+            const audioElements = document.querySelectorAll('audio');
+            audioElements.forEach(audio => {
+                audio.pause();
+                audio.remove();
+            });
+            
+            status.textContent = 'Call ended';
+            status.className = 'status';
+            
+            // End the chat session
+            try {
+                await fetch('/api/chat/end', {
+                    method: 'POST',
+                });
+            } catch (error) {
+                console.error('Error ending conversation:', error);
+            }
+            
+            // Clear the conversation display after a delay
+            setTimeout(() => {
+                conversation.innerHTML = '<div class="instructions">Your conversation will appear here...</div>';
+                // Reset cost display
+                costDisplay.className = 'cost-display';
+                costAmount.textContent = '0.0000';
+                chatCost.textContent = '0.0000';
+                ttsCost.textContent = '0.0000';
+            }, 2000);
+        });
+        
+        // Update timing display
+        function updateTimingDisplay() {
+            const textTimeEl = document.getElementById('textResponseTime');
+            const audioGenTimeEl = document.getElementById('audioGenerationTime');
+            const audioPlayTimeEl = document.getElementById('audioPlaybackTime');
+            const totalTimeEl = document.getElementById('totalVoiceTime');
+            
+            if (textTimeEl) {
+                if (textResponseTime) {
+                    textTimeEl.textContent = `${textResponseTime}ms`;
+                    textTimeEl.className = textResponseTime < 1000 ? 'timing-value' :
+                                           textResponseTime < 2000 ? 'timing-value slow' :
+                                           'timing-value very-slow';
+                } else {
+                    textTimeEl.textContent = '-';
+                }
+            }
+            
+            if (audioGenTimeEl) {
+                if (audioGenerationStartTime && audioPlaybackStartTime) {
+                    const audioGenTime = audioPlaybackStartTime - audioGenerationStartTime;
+                    audioGenTimeEl.textContent = `${audioGenTime}ms`;
+                    audioGenTimeEl.className = audioGenTime < 2000 ? 'timing-value' :
+                                              audioGenTime < 4000 ? 'timing-value slow' :
+                                              'timing-value very-slow';
+                } else {
+                    audioGenTimeEl.textContent = '-';
+                }
+            }
+            
+            if (audioPlayTimeEl && totalTimeEl) {
+                if (audioPlaybackStartTime && messageStartTime) {
+                    const playbackDelay = audioPlaybackStartTime - messageStartTime;
+                    audioPlayTimeEl.textContent = `${playbackDelay}ms`;
+                    
+                    const totalTime = playbackDelay;
+                    totalTimeEl.textContent = `${totalTime}ms`;
+                    totalTimeEl.className = totalTime < 2000 ? 'timing-value' :
+                                           totalTime < 4000 ? 'timing-value slow' :
+                                           'timing-value very-slow';
+                } else {
+                    audioPlayTimeEl.textContent = '-';
+                    totalTimeEl.textContent = '-';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
