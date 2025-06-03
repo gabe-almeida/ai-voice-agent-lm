@@ -15,7 +15,10 @@
     "test:streaming-v2": "ts-node scripts/test-gemini-streaming-v2.ts",
     "test:flash-tts": "ts-node scripts/test-flash-tts-comparison.ts",
     "test:openai-realtime": "ts-node scripts/test-openai-realtime.ts",
-    "test:emma": "ts-node scripts/test-openai-emma.ts"
+    "test:emma": "ts-node scripts/test-openai-emma.ts",
+    "test:production-ws": "ts-node scripts/test-production-websocket.ts",
+    "predeploy": "ts-node scripts/pre-deployment-check.ts",
+    "deploy": "./scripts/deploy-to-render.sh"
   },
   "keywords": [],
   "author": "",

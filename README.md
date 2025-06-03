@@ -4,6 +4,29 @@
 
 This is a real-time AI voice agent system built with Node.js/TypeScript that enables ultra-low latency voice conversations. The system integrates multiple AI providers (OpenAI, Google Gemini) and telephony services (Twilio) to create an intelligent voice assistant named "Emma" who can handle appointment scheduling through CRM integration.
 
+## Quick Start for Developers
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/ai-voice-agent-lm.git
+cd ai-voice-agent-lm
+
+# 2. Install dependencies
+npm install
+
+# 3. Copy environment file
+cp .env.example .env
+
+# 4. Edit .env and add at minimum:
+#    - OPENAI_API_KEY (required)
+#    - Twilio credentials (optional for phone calls)
+
+# 5. Run in development mode (more forgiving)
+npm run dev
+```
+
+**Note**: The app will run without Twilio credentials but won't handle phone calls. See [Troubleshooting Guide](docs/TROUBLESHOOTING_LAUNCH_ERRORS.md) for common issues.
+
 ## Architecture Overview
 
 ### Core Components
@@ -262,6 +285,8 @@ The system includes cost tracking for API usage:
 - OpenAI integration: `/docs/OPENAI_REALTIME_INTEGRATION.md`
 - Knowledge base guide: `/docs/KNOWLEDGE_BASE_INTEGRATION.md`
 - Token limits explained: `/docs/KNOWLEDGE_BASE_TOKEN_LIMITS.md`
+- **Deployment guide**: `/docs/RENDER_DEPLOYMENT_GUIDE.md`
+- **Quick deployment reference**: `/docs/RENDER_QUICK_REFERENCE.md`
 
 ## Contact
 

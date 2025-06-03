@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: voice-agent
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false # Set in Render dashboard for security
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: TWILIO_PHONE_NUMBERS
+        sync: false
+      - key: CRM_API_BASE_URL
+        sync: false
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false
+    autoDeploy: true # Auto-deploy on git push
+    healthCheckPath: /health
+    plan: starter-plus # $25/month plan
+    numInstances: 1
+    region: oregon # Change to your preferred region
