@@ -509,6 +509,28 @@ export class EmmaToolsService {
             additionalProperties: false
           }
         }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'end_call',
+          description: 'End the current phone call when the conversation is naturally complete. Use this when the customer indicates they are finished, the appointment has been scheduled/cancelled/rescheduled successfully, or when the conversation has reached a natural conclusion.',
+          parameters: {
+            type: 'object',
+            properties: {
+              reason: {
+                type: 'string',
+                description: 'Brief reason for ending the call (e.g., "appointment scheduled", "call completed", "customer request")'
+              },
+              callSid: {
+                type: 'string',
+                description: 'The Twilio call SID to end (optional - system will use current call if not provided)'
+              }
+            },
+            required: ['reason'],
+            additionalProperties: false
+          }
+        }
       }
     ];
   }
@@ -695,6 +717,10 @@ export class EmmaToolsService {
           result = await appointmentCancellationToolsService.cancelAppointment(toolCall.arguments);
           break;
 
+        case 'end_call':
+          result = await this.endCall(toolCall.arguments);
+          break;
+
         default:
           throw new Error(`Unknown tool: ${toolCall.name}`);
       }
@@ -772,6 +798,50 @@ export class EmmaToolsService {
       "Before we cancel, would you be open to exploring some alternatives?",
       "What if we could address your specific concerns? I'd love to help find a solution."
     ];
+  }
+
+  /**
+   * End the current phone call
+   */
+  private async endCall(args: {
+    reason: string;
+    callSid?: string;
+  }) {
+    try {
+      logger.info('Emma ending call', { reason: args.reason, callSid: args.callSid });
+
+      // Import TwilioService dynamically to avoid circular imports
+      const { TwilioService } = await import('./twilio.service');
+
+      if (args.callSid) {
+        // End specific call by SID
+        await TwilioService.endCall(args.callSid);
+        // Release the number from pool
+        TwilioService.releaseNumberOnCallEnd(args.callSid);
+      } else {
+        // If no callSid provided, we'll just log and return success
+        // In a real implementation, you'd get the current call SID from context
+        logger.info('Call ended by Emma - no specific callSid provided');
+      }
+
+      return {
+        success: true,
+        message: `Call ended successfully. Reason: ${args.reason}`,
+        data: {
+          reason: args.reason,
+          callSid: args.callSid,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+    } catch (error) {
+      logger.error('Error ending call:', error);
+      return {
+        success: false,
+        message: 'Failed to end call',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 
   /**

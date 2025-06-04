@@ -93,6 +93,11 @@ Emma can call these appointment management tools during conversations:
 - **`update_cancellation_attempt`** - Updates rebuttal stages and customer responses
 - **`get_available_slots`** - Gets alternative appointment times for rescheduling
 
+**Call Management Tools**
+- **`end_call`** - Ends the current Twilio phone call when conversation is complete
+  - Parameters: `reason` (required), `callSid` (optional)
+  - Emma can gracefully end calls when appointments are scheduled/cancelled or conversation concludes
+
 #### Security Validation Workflow
 
 **🔒 MANDATORY SEQUENCE**: Emma **cannot** reschedule, cancel, or retain appointments without first finding them:
