@@ -319,6 +319,78 @@ The AI agent includes a production-ready knowledge base system that matches how 
 
 See `/docs/KNOWLEDGE_BASE_INTEGRATION.md` for detailed implementation guide.
 
+## System Prompt & Knowledge Base Configuration 🧠
+
+### Emma's System Prompts
+
+Emma's personality, instructions, and behavior are defined in these configuration files:
+
+**Main System Prompts:**
+- **[`src/config/emma-prompt.ts`](src/config/emma-prompt.ts)** - Emma's core personality and general conversation instructions
+- **[`src/config/emma-unified-prompt.ts`](src/config/emma-unified-prompt.ts)** - Unified workflow prompt with appointment management capabilities
+- **[`src/config/emma-cancellation-prompt.ts`](src/config/emma-cancellation-prompt.ts)** - Specialized prompt for appointment cancellation scenarios
+
+**Knowledge Base Files:**
+- **[`data/knowledge-base.json`](data/knowledge-base.json)** - Company information, services, policies, and FAQs
+- **[`src/services/simple-knowledge-base.service.ts`](src/services/simple-knowledge-base.service.ts)** - Service that loads knowledge base data
+- **[`src/services/knowledge-prompt-builder.service.ts`](src/services/knowledge-prompt-builder.service.ts)** - Builds prompts with embedded knowledge
+
+### How to Customize Emma
+
+#### 1. Modify Emma's Personality
+Edit [`src/config/emma-prompt.ts`](src/config/emma-prompt.ts) to change:
+- Conversation style and tone
+- Greeting messages
+- Response patterns
+- Core instructions
+
+#### 2. Update Company Knowledge
+Edit [`data/knowledge-base.json`](data/knowledge-base.json) to add:
+- Service descriptions and pricing
+- Company policies
+- Frequently asked questions
+- Contact information
+- Business hours
+
+#### 3. Change Appointment Behavior
+Edit [`src/config/emma-unified-prompt.ts`](src/config/emma-unified-prompt.ts) to modify:
+- Appointment scheduling flow
+- Validation requirements
+- Cancellation retention strategies
+- Tool calling behavior
+
+#### 4. Apply Changes
+```bash
+# Restart the server to apply prompt changes
+npm run dev
+
+# Test Emma with new configuration
+npm run test:emma
+```
+
+**Note:** System prompt changes require a server restart. Knowledge base changes are automatically loaded on startup.
+
+### File Structure for Customization
+```
+src/config/
+├── emma-prompt.ts           # 🎭 Emma's core personality
+├── emma-unified-prompt.ts   # 📅 Appointment workflow prompts
+└── emma-cancellation-prompt.ts # ❌ Cancellation handling
+
+data/
+└── knowledge-base.json      # 📚 Company knowledge & FAQs
+
+src/services/
+├── simple-knowledge-base.service.ts    # 🔄 Knowledge loader
+└── knowledge-prompt-builder.service.ts # 🔨 Prompt builder
+```
+
+### Advanced Prompt Engineering
+For advanced customization, see:
+- **[`docs/KNOWLEDGE_BASE_INTEGRATION.md`](docs/KNOWLEDGE_BASE_INTEGRATION.md)** - Knowledge base implementation details
+- **[`docs/KNOWLEDGE_BASE_TOKEN_LIMITS.md`](docs/KNOWLEDGE_BASE_TOKEN_LIMITS.md)** - Token usage and limits
+- **[`docs/APPOINTMENT_VALIDATION_SECURITY.md`](docs/APPOINTMENT_VALIDATION_SECURITY.md)** - Appointment workflow customization
+
 ## Cost Tracking
 
 The system includes cost tracking for API usage:
