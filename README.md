@@ -70,6 +70,71 @@ The system includes two CRM tools that Emma can use:
 2. Add authentication headers in `src/websocket/openai-realtime.ws.ts` (lines 206 & 237)
 3. Verify API response format matches expected structure
 
+### 4. Appointment Management & Validation Security 🔒
+
+Emma includes a comprehensive appointment management system with **mandatory validation security** to prevent operations on non-existent appointments.
+
+#### Available Appointment Tools
+
+Emma can call these appointment management tools during conversations:
+
+**Step 1 - Validation Tools (Required First)**
+- **`find_customer_appointment`** - Searches and verifies customer appointments exist
+  - Parameters: `customerName` (required), `phoneNumber`, `appointmentDate`, `zipCode` (optional)
+  - Must be called before any modification operations
+
+**Step 2 - Action Tools (Require Validation)**
+- **`reschedule_appointment`** - Reschedules appointments to new dates/times
+- **`cancel_appointment`** - Cancels appointments (with retention attempt tracking)
+- **`retain_appointment`** - Marks appointments as retained after retention efforts
+
+**Supporting Tools**
+- **`start_cancellation_attempt`** - Initiates cancellation tracking for retention efforts
+- **`update_cancellation_attempt`** - Updates rebuttal stages and customer responses
+- **`get_available_slots`** - Gets alternative appointment times for rescheduling
+
+#### Security Validation Workflow
+
+**🔒 MANDATORY SEQUENCE**: Emma **cannot** reschedule, cancel, or retain appointments without first finding them:
+
+```
+1. Customer: "I want to cancel my appointment"
+2. Emma calls: find_customer_appointment(customerName: "John Smith")
+3. System verifies: appointment exists, returns exact ID and details
+4. Emma can then call: cancel_appointment(appointmentId: "exact_id", customerName: "John Smith")
+```
+
+**Prevented Security Issues:**
+- ❌ Cannot reschedule/cancel non-existent appointments
+- ❌ Cannot use fake appointment IDs
+- ❌ Cannot bypass customer verification
+- ✅ All operations require validated appointment details
+
+#### Conversational Flow Support
+
+The validation system supports complex customer conversations:
+
+```
+Customer: "Cancel my appointment"
+Emma: [finds appointment] "I found your June 5th appointment..."
+Customer: "Actually, reschedule it instead"
+Emma: [uses same validated details for rescheduling]
+Customer: "Wait, keep it as is"
+Emma: [retains using same validated details]
+```
+
+#### Testing Appointment Validation
+
+```bash
+# Test the security validation workflow
+npx tsx scripts/test-emma-appointment-validation.ts
+
+# Test complete appointment management features
+npx tsx scripts/test-emma-unified-workflow.ts
+```
+
+**Documentation:** See `/docs/APPOINTMENT_VALIDATION_SECURITY.md` for complete technical details.
+
 ## Integration with React Applications
 
 ### Option 1: Direct WebSocket Integration

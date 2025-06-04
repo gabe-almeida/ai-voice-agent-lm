@@ -14,6 +14,7 @@ import twilioRoutes from './routes/twilio.routes';
 import chatRoutes from './routes/chat.routes';
 import chatStreamingRoutes from './routes/chat-streaming.routes';
 import openaiRealtimeRoutes from './routes/openai-realtime.routes';
+import appointmentCancellationRoutes from './routes/appointment-cancellation.routes';
 
 /**
  * Create and configure Express application
@@ -57,6 +58,7 @@ export function createApp(): Application {
   app.use('/api/chat', chatRoutes);
   app.use('/api/chat/stream', chatStreamingRoutes);
   app.use('/api/openai-realtime', openaiRealtimeRoutes);
+  app.use('/api/appointments', appointmentCancellationRoutes);
 
   // Root endpoint - serve landing page
   app.get('/', (_req: Request, res: Response) => {

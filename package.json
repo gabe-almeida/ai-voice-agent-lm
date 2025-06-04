@@ -16,6 +16,7 @@
     "test:flash-tts": "ts-node scripts/test-flash-tts-comparison.ts",
     "test:openai-realtime": "ts-node scripts/test-openai-realtime.ts",
     "test:emma": "ts-node scripts/test-openai-emma.ts",
+    "test:cancellation": "ts-node scripts/test-appointment-cancellation.ts",
     "test:production-ws": "ts-node scripts/test-production-websocket.ts",
     "predeploy": "ts-node scripts/pre-deployment-check.ts",
     "deploy": "./scripts/deploy-to-render.sh"
