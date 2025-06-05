@@ -8,15 +8,16 @@ const router = Router();
  * Find customer appointment(s)
  * POST /api/appointments/find
  */
-router.post('/find', async (req, res) => {
+router.post('/find', async (req: Request, res: Response): Promise<void> => {
   try {
     const { customerName, phoneNumber, appointmentId } = req.body;
     
     if (!customerName && !phoneNumber && !appointmentId) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'At least one of customerName, phoneNumber, or appointmentId is required'
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.findCustomerAppointment({
@@ -40,15 +41,16 @@ router.post('/find', async (req, res) => {
  * Start cancellation attempt
  * POST /api/appointments/cancellation/start
  */
-router.post('/cancellation/start', async (req, res) => {
+router.post('/cancellation/start', async (req: Request, res: Response): Promise<void> => {
   try {
     const { appointmentId, reason, customerInitiated = true } = req.body;
     
     if (!appointmentId || !reason) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'appointmentId and reason are required'
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.startCancellationAttempt({
@@ -72,23 +74,25 @@ router.post('/cancellation/start', async (req, res) => {
  * Update cancellation attempt
  * POST /api/appointments/cancellation/update
  */
-router.post('/cancellation/update', async (req, res) => {
+router.post('/cancellation/update', async (req: Request, res: Response): Promise<void> => {
   try {
     const { attemptId, rebuttalStage, rebuttalType, customerResponse, outcome } = req.body;
     
     if (!attemptId || rebuttalStage === undefined || !rebuttalType || !customerResponse) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'attemptId, rebuttalStage, rebuttalType, and customerResponse are required'
       });
+      return;
     }
 
     const validRebuttalTypes = ['schedule_conflict', 'financial_concern', 'changed_mind', 'spouse_objection', 'timing_concern'];
     if (!validRebuttalTypes.includes(rebuttalType)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: `rebuttalType must be one of: ${validRebuttalTypes.join(', ')}`
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.updateCancellationAttempt({
@@ -114,31 +118,34 @@ router.post('/cancellation/update', async (req, res) => {
  * Reschedule appointment
  * POST /api/appointments/reschedule
  */
-router.post('/reschedule', async (req, res) => {
+router.post('/reschedule', async (req: Request, res: Response): Promise<void> => {
   try {
     const { appointmentId, newDate, newTime, newStaffId, reason, attemptId } = req.body;
     
     if (!appointmentId || !newDate || !newTime) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'appointmentId, newDate, and newTime are required'
       });
+      return;
     }
 
     // Validate date format (YYYY-MM-DD)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'newDate must be in YYYY-MM-DD format'
       });
+      return;
     }
 
     // Validate time format (HH:mm)
     if (!/^\d{2}:\d{2}$/.test(newTime)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'newTime must be in HH:mm format'
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.rescheduleAppointment({
@@ -165,15 +172,16 @@ router.post('/reschedule', async (req, res) => {
  * Cancel appointment
  * POST /api/appointments/cancel
  */
-router.post('/cancel', async (req, res) => {
+router.post('/cancel', async (req: Request, res: Response): Promise<void> => {
   try {
     const { appointmentId, reason, attemptId } = req.body;
     
     if (!appointmentId || !reason) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'appointmentId and reason are required'
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.cancelAppointment({
@@ -197,15 +205,16 @@ router.post('/cancel', async (req, res) => {
  * Retain appointment
  * POST /api/appointments/retain
  */
-router.post('/retain', async (req, res) => {
+router.post('/retain', async (req: Request, res: Response): Promise<void> => {
   try {
     const { appointmentId, attemptId } = req.body;
     
     if (!appointmentId) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'appointmentId is required'
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.retainAppointment(appointmentId, attemptId);
@@ -225,15 +234,16 @@ router.post('/retain', async (req, res) => {
  * Get available slots for rescheduling
  * POST /api/appointments/available-slots
  */
-router.post('/available-slots', async (req, res) => {
+router.post('/available-slots', async (req: Request, res: Response): Promise<void> => {
   try {
     const { zipCode, preferredDates } = req.body;
     
     if (!zipCode) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'zipCode is required'
       });
+      return;
     }
 
     const result = await appointmentCancellationToolsService.getAvailableSlotsForReschedule(
@@ -256,7 +266,7 @@ router.post('/available-slots', async (req, res) => {
  * Get cancellation statistics
  * GET /api/appointments/cancellation/stats
  */
-router.get('/cancellation/stats', async (req, res) => {
+router.get('/cancellation/stats', async (_req: Request, res: Response): Promise<void> => {
   try {
     const result = await appointmentCancellationToolsService.getCancellationStats();
     res.json(result);
